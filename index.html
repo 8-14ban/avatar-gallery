@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>头像下载站 | Avatar Gallery</title>
+<meta name="description" content="免费头像下载，高清 webp 格式，点击即可保存">
+<style>
+:root {
+  --bg: #0d0f14;
+  --card: #161a22;
+  --card-hover: #1c212c;
+  --border: #262c38;
+  --text: #e8eaf0;
+  --text-dim: #8b93a3;
+  --accent: #6c8cff;
+  --accent-hover: #8ba3ff;
+  --radius: 16px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+header {
+  text-align: center;
+  padding: 56px 20px 36px;
+}
+header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+header h1 span { color: var(--accent); }
+header p {
+  color: var(--text-dim);
+  margin-top: 10px;
+  font-size: 1rem;
+}
+.count-badge {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 4px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+main {
+  flex: 1;
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 24px 60px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  background: var(--card-hover);
+}
+.thumb {
+  position: relative;
+  aspect-ratio: 1;
+  background: repeating-conic-gradient(#1a1e28 0% 25%, #14171f 0% 50%) 50% / 20px 20px;
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.info {
+  padding: 14px 16px 16px;
+}
+.info h2 {
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+.meta {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  margin-top: 4px;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 0;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.88rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent-hover); }
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+.btn svg { width: 15px; height: 15px; fill: currentColor; }
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 36px;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+footer {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  padding: 24px;
+  border-top: 1px solid var(--border);
+}
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+@media (max-width: 480px) {
+  header h1 { font-size: 1.7rem; }
+  main { padding: 16px 14px 40px; }
+  .grid { gap: 16px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>头像<span>下载站</span></h1>
+  <p>高清头像，即点即存，WebP 原图直下</p>
+  <span class="count-badge" id="count">共 3 张</span>
+</header>
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+<footer>
+  托管于 GitHub Pages · <a href="https://github.com/8-14ban/avatar-gallery" target="_blank" rel="noopener">源码仓库</a>
+</footer>
+<div class="toast" id="toast">链接已复制</div>
+
+<script>
+const AVATARS = [
+  { file: "avatar-1.webp", name: "头像 01", w: 1200, h: 1177, size: "53 KB" },
+  { file: "avatar-2.webp", name: "头像 02", w: 1200, h: 1185, size: "90 KB" },
+  { file: "avatar-3.webp", name: "头像 03", w: 1080, h: 915,  size: "42 KB" }
+];
+
+const grid = document.getElementById("grid");
+const toast = document.getElementById("toast");
+
+const dlIcon = '<svg viewBox="0 0 24 24"><path d="M12 3v10.59l-3.3-3.3-1.4 1.42L12 16.4l4.7-4.69-1.4-1.42-3.3 3.3V3h-2zM5 19v2h14v-2H5z"/></svg>';
+const linkIcon = '<svg viewBox="0 0 24 24"><path d="M10.6 13.4a1 1 0 0 0 1.4 1.4l3-3a3 3 0 0 0-4.24-4.24l-1.72 1.72a1 1 0 1 0 1.41 1.41l1.72-1.71a1 1 0 1 1 1.42 1.41l-3 3.01zm2.8-2.8a1 1 0 0 0-1.4-1.4l-3 3a3 3 0 0 0 4.24 4.24l1.72-1.72a1 1 0 1 0-1.41-1.41l-1.72 1.71a1 1 0 1 1-1.42-1.41l3-3.01z"/></svg>';
+
+AVATARS.forEach((a, i) => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="thumb">
+      <img src="avatars/${a.file}" alt="${a.name}" loading="lazy">
+    </div>
+    <div class="info">
+      <h2>${a.name}</h2>
+      <div class="meta">${a.w} × ${a.h} · ${a.size} · WebP</div>
+      <div class="actions">
+        <a class="btn primary" href="avatars/${a.file}" download="${a.file}">${dlIcon}下载</a>
+        <button class="btn" data-i="${i}">${linkIcon}复制链接</button>
+      </div>
+    </div>`;
+  grid.appendChild(card);
+});
+
+grid.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-i]");
+  if (!btn) return;
+  const a = AVATARS[+btn.dataset.i];
+  const url = new URL(`avatars/${a.file}`, location.href).href;
+  navigator.clipboard.writeText(url).then(() => {
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 1600);
+  }).catch(() => {
+    prompt("复制以下链接：", url);
+  });
+});
+</script>
+</body>
+</html>
